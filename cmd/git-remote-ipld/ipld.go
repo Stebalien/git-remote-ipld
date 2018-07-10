@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +9,7 @@ import (
 	"strings"
 
 	core "github.com/ipfs-shipyard/git-remote-ipld/core"
-	ipfs "gx/ipfs/Qmab1jkxU94CuahLNFU8MxA34dA2hJ89AC681cpjMGPuN8/go-ipfs-api"
+	ipfs "gx/ipfs/QmTjxaVXTFKytW9trPb6taGv2w6FpsQGx2ViDBERd9UR1W/go-ipfs-api"
 
 	"gx/ipfs/QmSVCWSGNwq9Lr1t4uLSMnytyJe4uL7NW7jZ3uas5BPpbX/go-git.v4/plumbing"
 	"gx/ipfs/QmapdYm1b22Frv3k17fqrBYTFRxwiaVJkB299Mfn33edeB/go-cid"
@@ -157,12 +156,25 @@ func (h *IpnsHandler) List(remote *core.Remote, forPush bool) ([]string, error) 
 		}
 
 		err = it.ForEach(func(ref *plumbing.Reference) error {
-			// resolve ref.Name().String()
-			// return that
+			remoteRef := "0000000000000000000000000000000000000000"
 
-			remoteRef := make([]byte, 20)
+			localRef, err := h.api.ResolvePath(path.Join(h.currentHash, ref.Name().String()))
+			if err != nil && !strings.Contains(err.Error(), "no link named") {
+				return err
+			}
+			if err == nil {
+				refCid, err := cid.Parse(localRef)
+				if err != nil {
+					return err
+				}
 
-			out = append(out, fmt.Sprintf("%s %s", hex.EncodeToString(remoteRef), ref.Name()))
+				remoteRef, err = core.HexFromCid(refCid)
+				if err != nil {
+					return err
+				}
+			}
+
+			out = append(out, fmt.Sprintf("%s %s", remoteRef, ref.Name()))
 
 			return nil
 		})
@@ -266,7 +278,7 @@ func (h *IpnsHandler) fillMissingLobjs(tracker *core.Tracker) error {
 			continue
 		}
 
-		k = strings.TrimPrefix(k, LOBJ_TRACKER_PRIFIX + "/")
+		k = strings.TrimPrefix(k, LOBJ_TRACKER_PRIFIX+"/")
 
 		h.largeObjs[k] = v
 		h.currentHash, err = h.api.PatchLink(h.currentHash, "objects/"+k, v, true)

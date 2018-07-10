@@ -39,9 +39,9 @@
     },
     {
       "author": "ipfs",
-      "hash": "Qmab1jkxU94CuahLNFU8MxA34dA2hJ89AC681cpjMGPuN8",
+      "hash": "QmTjxaVXTFKytW9trPb6taGv2w6FpsQGx2ViDBERd9UR1W",
       "name": "go-ipfs-api",
-      "version": "1.2.7"
+      "version": "1.3.1"
     },
     {
       "author": "whyrusleeping",
